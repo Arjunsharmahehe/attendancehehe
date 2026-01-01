@@ -6,128 +6,117 @@ import { SubjectRow } from "../components/subject-row";
 import { NewSubjectRow } from "../components/new-subject-row";
 
 export function SubjectsPage() {
-    const { subjects, addSubject, removeSubject } = useApp();
+  const { subjects, addSubject, removeSubject } = useApp();
 
-    const [focusIndex, setFocusIndex] = useState<number>(-1);
-    const [subFocus, setSubFocus] = useState<0 | 1>(0);
-    const [isEditing, setIsEditing] = useState(false);
+  const [focusIndex, setFocusIndex] = useState<number>(-1);
+  const [subFocus, setSubFocus] = useState<0 | 1>(0);
+  const [isEditing, setIsEditing] = useState(false);
 
-    // Navigation Logic
-    useKeyboard((key) => {
-        // 1. Column Nav
-        if (key.name === "right" || key.name === "tab") {
-            setSubFocus(1);
-            return;
-        }
-        if (key.name === "left") {
-            setSubFocus(0);
-            return;
-        }
+  useKeyboard((key) => {
+    if (key.name === "right" || key.name === "tab") {
+      setSubFocus(1);
+      return;
+    }
+    if (key.name === "left") {
+      setSubFocus(0);
+      return;
+    }
+    if (isEditing) {
+      if (key.name === "escape") {
+        setIsEditing(false);
+      }
+      return;
+    }
 
-        // 2. Edit Mode controls
-        if (isEditing) {
-            if (key.name === "escape") {
-                setIsEditing(false);
-            }
-            return;
-        }
+    if (key.name === "down") {
+      setFocusIndex((prev) => {
+        if (prev === -1) return -1;
+        if (prev === subjects.length - 1) return -1;
+        return prev + 1;
+      });
+      setSubFocus(0); // Reset col on row change
+    }
+    if (key.name === "up") {
+      setFocusIndex((prev) => {
+        if (prev === 0) return 0;
+        if (prev === -1) return subjects.length > 0 ? subjects.length - 1 : 0;
+        return prev - 1;
+      });
+      setSubFocus(0); // Reset col on row change
+    }
 
-        // 3. Row Nav
-        if (key.name === "down") {
-            setFocusIndex((prev) => {
-                if (prev === -1) return -1;
-                if (prev === subjects.length - 1) return -1;
-                return prev + 1;
-            });
-            setSubFocus(0); // Reset col on row change
-        }
-        if (key.name === "up") {
-            setFocusIndex((prev) => {
-                if (prev === 0) return 0;
-                if (prev === -1)
-                    return subjects.length > 0 ? subjects.length - 1 : 0;
-                return prev - 1;
-            });
-            setSubFocus(0); // Reset col on row change
-        }
+    if (key.name === "space" && focusIndex >= 0) {
+      setIsEditing(true);
+      setSubFocus(0);
+    }
 
-        // 4. Actions
-        if (key.name === "space" && focusIndex >= 0) {
-            setIsEditing(true);
-            setSubFocus(0);
-        }
+    if (key.name === "d" && focusIndex >= 0) {
+      const idToDelete = subjects[focusIndex].id;
+      removeSubject(idToDelete);
+      setFocusIndex((prev) =>
+        prev > 0 ? prev - 1 : subjects.length > 1 ? 0 : -1,
+      );
+    }
+  });
 
-        if (key.name === "d" && focusIndex >= 0) {
-            const idToDelete = subjects[focusIndex].id;
-            removeSubject(idToDelete);
-            setFocusIndex((prev) =>
-                prev > 0 ? prev - 1 : subjects.length > 1 ? 0 : -1,
-            );
-        }
-    });
+  const handleSaveRow = useCallback(
+    (id: string, name: string, code: string) => {
+      removeSubject(id);
+      addSubject(name, code);
+      setIsEditing(false);
+    },
+    [removeSubject, addSubject],
+  );
 
-    // UseCallback ensures these functions don't change identity on every render
-    // preventing the child components from re-rendering unnecessarily.
-    const handleSaveRow = useCallback(
-        (id: string, name: string, code: string) => {
-            // We need to implement update logic in context ideally
-            // For now, using the remove/add hack (or update logic if you added it)
-            removeSubject(id);
-            addSubject(name, code);
-            setIsEditing(false);
-        },
-        [removeSubject, addSubject],
-    );
+  const handleAddRow = useCallback(
+    (name: string, code: string) => {
+      addSubject(name, code);
+      setSubFocus(0);
+    },
+    [addSubject],
+  );
 
-    const handleAddRow = useCallback(
-        (name: string, code: string) => {
-            addSubject(name, code);
-            setSubFocus(0);
-        },
-        [addSubject],
-    );
+  return (
+    <box flexDirection="column" padding={1} width={100}>
+      {/* Header */}
+      <box flexDirection="column" marginBottom={1}>
+        <text fg="blue" attributes={TextAttributes.BOLD}>
+          Subjects
+        </text>
+      </box>
 
-    return (
-        <box flexDirection="column" padding={1} width={100}>
-            {/* Header */}
-            <box flexDirection="column" marginBottom={1}>
-                <text fg="blue" attributes={TextAttributes.BOLD}>
-                    Subjects
-                </text>
-            </box>
+      {/* List */}
+      <box flexDirection="column" flexGrow={1}>
+        {subjects.map((sub, idx) => (
+          <SubjectRow
+            key={sub.id}
+            subject={sub}
+            isFocused={focusIndex === idx}
+            isEditing={isEditing && focusIndex === idx}
+            subFocus={subFocus}
+            onSave={handleSaveRow}
+          />
+        ))}
+      </box>
 
-            {/* List */}
-            <box flexDirection="column" flexGrow={1}>
-                {subjects.map((sub, idx) => (
-                    <SubjectRow
-                        key={sub.id}
-                        subject={sub}
-                        isFocused={focusIndex === idx}
-                        isEditing={isEditing && focusIndex === idx}
-                        subFocus={subFocus}
-                        onSave={handleSaveRow}
-                    />
-                ))}
-            </box>
+      {/* Footer Input */}
+      <NewSubjectRow
+        isFocused={focusIndex === -1}
+        subFocus={subFocus}
+        onAdd={handleAddRow}
+      />
 
-            {/* Footer Input */}
-            <NewSubjectRow
-                isFocused={focusIndex === -1}
-                subFocus={subFocus}
-                onAdd={handleAddRow}
-            />
-
-            {/* Controls Helper */}
-            <box
-                marginTop={2}
-                flexGrow={1}
-                alignItems="center"
-                justifyContent="center"
-            >
-                <text attributes={TextAttributes.DIM}>
-                    [↑/↓] Row [←/→] Col [Space] Edit [Enter] Save [d] Delete
-                </text>
-            </box>
-        </box>
-    );
+      {/* Controls Helper */}
+      <box
+        marginTop={2}
+        flexGrow={1}
+        alignItems="center"
+        justifyContent="center"
+      >
+        <text attributes={TextAttributes.DIM}>
+          [↑/↓] Row [←/→] Col [Space] Edit [Enter] Save [d] Delete
+        </text>
+      </box>
+    </box>
+  );
 }
