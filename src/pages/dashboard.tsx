@@ -58,7 +58,7 @@ export function DashboardPage() {
   return (
     <box flexDirection="column" alignItems="center" padding={1} width={120}>
       {/* Header */}
-      <box flexDirection="row" justifyContent="center" marginBottom={2}>
+      <box flexDirection="row" justifyContent="center" marginBottom={1}>
         <text fg="blue" attributes={TextAttributes.BOLD}>
           {"< "}
         </text>

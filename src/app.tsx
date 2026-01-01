@@ -3,6 +3,7 @@ import { useState } from "react";
 import { SubjectsPage } from "./pages/subjects";
 import { SchedulePage } from "./pages/settings";
 import { DashboardPage } from "./pages/dashboard";
+import { TextAttributes } from "@opentui/core";
 
 export type View = "dashboard" | "settings" | "subjects";
 
@@ -27,8 +28,16 @@ export function MainApp() {
             alignItems="center"
             justifyContent="center"
             flexGrow={1}
+            flexDirection="column"
             backgroundColor={"black"}
         >
+            <box flexDirection="row" alignItems="center" justifyContent="center" gap={2} position="absolute" top={2}>
+                {["Dashboard", "Subjects", "Settings"].map((label) => (
+                    <text key={label} attributes={label.toLowerCase() == activeView ? TextAttributes.BOLD : TextAttributes.DIM}>
+                        {label}
+                    </text>
+                ))}
+            </box>
             {activeView == "subjects" && <SubjectsPage />}
             {activeView == "settings" && <SchedulePage />}
             {activeView == "dashboard" && <DashboardPage />}
