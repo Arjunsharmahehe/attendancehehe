@@ -2,7 +2,14 @@
 
 A personal attendance tracking terminal user interface built with [Bun](https://bun.sh) and [OpenTUI](https://github.com/sst/opentui). Log your daily attendance, manage subjects, create timetables, and track your attendance statistics right from the terminal.
 
-![Dashboard View](https://via.placeholder.com/800x400?text=Attendance+Tracker+TUI+Screenshot)
+## Screenshots
+
+### Dashboard View
+![Dashboard View](public/dashboard.png)
+
+| Subjects Management | Settings (Timetable Configuration) |
+|---|---|
+| ![Subjects View](public/subjects.png) | ![Settings View](public/settings.png) |
 
 ## Features
 
