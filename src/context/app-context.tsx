@@ -124,7 +124,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   };
   const resetSchedule = () => {
-    return;
+    const init: Schedule = {};
+    DAYS.forEach((d) => (init[d] = Array(8).fill("FREE")));
+    setSchedule(init);
+    Bun.write(FILES.SCHEDULE, JSON.stringify(init, null, 2));
   };
 
   const markAttendance = (
