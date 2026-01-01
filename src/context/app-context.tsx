@@ -1,9 +1,9 @@
 import {
-    createContext,
-    useContext,
-    useEffect,
-    useState,
-    type ReactNode,
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
 } from "react";
 import os from "os";
 import path from "path";
@@ -21,256 +21,229 @@ const dataDir = path.join(os.homedir(), ".attendancehehe");
 
 // Ensure directory exists
 if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
+  fs.mkdirSync(dataDir, { recursive: true });
 }
 
 const FILES = {
-    SUBJECTS: path.join(dataDir, "subjects.json"),
-    SCHEDULE: path.join(dataDir, "schedule.json"),
-    MASTER: path.join(dataDir, "master.csv"),
+  SUBJECTS: path.join(dataDir, "subjects.json"),
+  SCHEDULE: path.join(dataDir, "schedule.json"),
+  MASTER: path.join(dataDir, "master.csv"),
 };
 
 interface AppContextType {
-    subjects: Subject[];
-    schedule: Schedule;
-    attendance: AttendanceRecord;
-    // ... existing methods ...
-    addSubject: (name: string, code: string) => void;
-    removeSubject: (id: string) => void;
-    updateSchedule: (day: string, slotIndex: number, subjectId: string) => void;
-    resetSchedule: () => void;
-
-    // New Methods
-    markAttendance: (
-        date: string,
-        slotIndex: number,
-        status: AttendanceStatus,
-    ) => void;
-    getSubjectStats: (subjectId: string) => {
-        total: number;
-        present: number;
-        percentage: number;
-        buffer: number;
-        lag: number;
-    };
+  subjects: Subject[];
+  schedule: Schedule;
+  attendance: AttendanceRecord;
+  addSubject: (name: string, code: string) => void;
+  removeSubject: (id: string) => void;
+  updateSchedule: (day: string, slotIndex: number, subjectId: string) => void;
+  resetSchedule: () => void;
+  markAttendance: (
+    date: string,
+    slotIndex: number,
+    status: AttendanceStatus,
+  ) => void;
+  getSubjectStats: (subjectId: string) => {
+    total: number;
+    present: number;
+    percentage: number;
+    buffer: number;
+    lag: number;
+  };
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
-    const [subjects, setSubjects] = useState<Subject[]>([]);
-    const [schedule, setSchedule] = useState<Schedule>(() => {
-        const init: Schedule = {};
-        DAYS.forEach((d) => (init[d] = Array(8).fill("FREE")));
-        return init;
-    });
-    const [attendance, setAttendance] = useState<AttendanceRecord>({});
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [schedule, setSchedule] = useState<Schedule>(() => {
+    const init: Schedule = {};
+    DAYS.forEach((d) => (init[d] = Array(8).fill("FREE")));
+    return init;
+  });
+  const [attendance, setAttendance] = useState<AttendanceRecord>({});
 
-    // --- Load Data ---
-    useEffect(() => {
-        async function load() {
-            // 1. Subjects
-            const subFile = Bun.file(FILES.SUBJECTS);
-            if (await subFile.exists()) setSubjects(await subFile.json());
+  // --- Load Data ---
+  useEffect(() => {
+    async function load() {
+      const subFile = Bun.file(FILES.SUBJECTS);
+      if (await subFile.exists()) setSubjects(await subFile.json());
 
-            // 2. Schedule
-            const schedFile = Bun.file(FILES.SCHEDULE);
-            if (await schedFile.exists()) {
-                const scheduleFile = await schedFile.json();
-                setSchedule((prev) => ({
-                    ...prev,
-                    ...scheduleFile,
-                }));
+      const schedFile = Bun.file(FILES.SCHEDULE);
+      if (await schedFile.exists()) {
+        const scheduleFile = await schedFile.json();
+        setSchedule((prev) => ({
+          ...prev,
+          ...scheduleFile,
+        }));
 
-                // 3. Attendance (CSV Parser)
-                const csvFile = Bun.file(FILES.MASTER);
-                if (await csvFile.exists()) {
-                    const text = await csvFile.text();
-                    const records: AttendanceRecord = {};
-                    text.split("\n").forEach((line) => {
-                        if (!line.trim()) return;
-                        const [date, slotStr, , status] = line.split(","); // date,slot,subId,status
-                        if (!records[date]) records[date] = {};
-                        records[date][parseInt(slotStr)] =
-                            status as AttendanceStatus;
-                    });
-                    setAttendance(records);
-                }
-            }
+        // Parse that Attendance
+        const csvFile = Bun.file(FILES.MASTER);
+        if (await csvFile.exists()) {
+          const text = await csvFile.text();
+          const records: AttendanceRecord = {};
+          text.split("\n").forEach((line) => {
+            if (!line.trim()) return;
+            const [date, slotStr, , status] = line.split(","); // date,slot,subId,status
+            if (!records[date]) records[date] = {};
+            records[date][parseInt(slotStr)] = status as AttendanceStatus;
+          });
+          setAttendance(records);
         }
-        load();
-    }, []);
+      }
+    }
+    load();
+  }, []);
 
-    // --- Existing Subject/Schedule Logic (Hidden for brevity, assume same as before) ---
-    const addSubject = (name: string, code: string) => {
-        const newSubject: Subject = { id: crypto.randomUUID(), name, code };
-        setSubjects((prev) => [...prev, newSubject]);
-        Bun.write(
-            FILES.SUBJECTS,
-            JSON.stringify([...subjects, newSubject], null, 2),
-        );
-    };
-
-    const removeSubject = (id: string) => {
-        setSubjects((prev) => prev.filter((s) => s.id !== id));
-        Bun.write(
-            FILES.SUBJECTS,
-            JSON.stringify([...subjects.filter((s) => s.id !== id)], null, 2),
-        );
-    };
-    const updateSchedule = (
-        day: string,
-        slotIndex: number,
-        subjectId: string,
-    ) => {
-        setSchedule((prev) => {
-            const next = { ...prev, [day]: [...(prev[day] || [])] };
-            next[day][slotIndex] = subjectId;
-            Bun.write(FILES.SCHEDULE, JSON.stringify(next, null, 2));
-            return next;
-        });
-    };
-    const resetSchedule = () => {
-        /* ... */
-    };
-
-    // --- New Attendance Logic ---
-
-    // Inside src/context/app-context.tsx
-
-    const markAttendance = (
-        date: string,
-        slotIndex: number,
-        status: AttendanceStatus,
-    ) => {
-        setAttendance((prev) => {
-            // 1. Create a shallow copy of the entire record
-            const next = { ...prev };
-
-            // 2. CRITICAL FIX: Create a NEW object for the specific day
-            // Instead of mutating next[date], we make a copy of it first.
-            const updatedDayRecord = { ...(next[date] || {}) };
-
-            // 3. Update the slot in the NEW day object
-            updatedDayRecord[slotIndex] = status;
-
-            // 4. Assign the new day object back to the main record
-            next[date] = updatedDayRecord;
-
-            // Save to disk logic...
-            saveAttendanceToDisk(next);
-
-            return next;
-        });
-    };
-
-    // Inside src/context/app-context.tsx
-
-    const saveAttendanceToDisk = async (data: AttendanceRecord) => {
-        let csv = "";
-
-        Object.entries(data).forEach(([date, slots]) => {
-            // 1. Find out what day of the week this date was
-            const d = new Date(date);
-            const dayIndex = d.getDay() - 1; // 0=Sun, 1=Mon... we need Mon=0
-            const dayName =
-                dayIndex >= 0 && dayIndex < 5 ? DAYS[dayIndex] : null;
-
-            Object.entries(slots).forEach(([slotStr, status]) => {
-                const slot = parseInt(slotStr);
-
-                // 2. Look up the real Subject ID from the schedule
-                // If it's a weekend or schedule missing, fallback to "UNKNOWN"
-                let realSubjectId = "UNKNOWN";
-                if (dayName && schedule[dayName] && schedule[dayName][slot]) {
-                    realSubjectId = schedule[dayName][slot];
-                }
-
-                // 3. Save the REAL ID
-                csv += `${date},${slot},${realSubjectId},${status}\n`;
-            });
-        });
-
-        await Bun.write(FILES.MASTER, csv);
-    };
-
-    // --- Stats Calculation ---
-    const getSubjectStats = (subjectId: string) => {
-        let total = 0;
-        let present = 0;
-
-        // Iterate all attendance records
-        // Note: This is O(N) where N is total days recorded.
-        // For a personal app, this is instant.
-        Object.entries(attendance).forEach(([date, slots]) => {
-            // Find which subject was scheduled on this day?
-            // We need to know the Day of Week for this date.
-            const d = new Date(date);
-            const dayName = DAYS[d.getDay() - 1]; // getDay: 0=Sun, 1=Mon...
-
-            if (!dayName || !schedule[dayName]) return; // Weekend or invalid
-
-            Object.entries(slots).forEach(([slotIdx, status]) => {
-                const scheduledSub = schedule[dayName][parseInt(slotIdx)];
-
-                // Only count if this specific subject was scheduled here
-                if (scheduledSub === subjectId) {
-                    if (status === "P") {
-                        present++;
-                        total++;
-                    } else if (status === "A") {
-                        total++;
-                    }
-                    // 'T' (Teacher Absent) is ignored for both
-                }
-            });
-        });
-
-        const percentage = total === 0 ? 0 : (present / total) * 100;
-
-        // Buffer Calculation (Target 75%)
-        // Formula: (P + x) / (T + x) >= 0.75  => x is buffer classes to bunk? NO.
-        // Buffer = How many classes can I MISS?
-        // Formula: P / (T + x) >= 0.75  =>  P >= 0.75T + 0.75x  =>  0.75x <= P - 0.75T
-        const bufferRaw = present / 0.75 - total;
-        const buffer = Math.floor(bufferRaw); // If positive, can bunk this many.
-
-        // Lag Calculation (Need to attend)
-        // Formula: (P + x) / (T + x) >= 0.75
-        // x >= 3T - 4P
-        const lagRaw = 3 * total - 4 * present;
-        const lag = Math.max(0, Math.ceil(lagRaw));
-
-        return {
-            total,
-            present,
-            percentage,
-            buffer: buffer > 0 ? buffer : 0,
-            lag: buffer < 0 ? lag : 0,
-        };
-    };
-
-    return (
-        <AppContext.Provider
-            value={{
-                subjects,
-                schedule,
-                attendance,
-                addSubject,
-                removeSubject,
-                updateSchedule,
-                resetSchedule,
-                markAttendance,
-                getSubjectStats,
-            }}
-        >
-            {children}
-        </AppContext.Provider>
+  const addSubject = (name: string, code: string) => {
+    const newSubject: Subject = { id: crypto.randomUUID(), name, code };
+    setSubjects((prev) => [...prev, newSubject]);
+    Bun.write(
+      FILES.SUBJECTS,
+      JSON.stringify([...subjects, newSubject], null, 2),
     );
+  };
+
+  const removeSubject = (id: string) => {
+    setSubjects((prev) => prev.filter((s) => s.id !== id));
+    Bun.write(
+      FILES.SUBJECTS,
+      JSON.stringify([...subjects.filter((s) => s.id !== id)], null, 2),
+    );
+  };
+  const updateSchedule = (
+    day: string,
+    slotIndex: number,
+    subjectId: string,
+  ) => {
+    setSchedule((prev) => {
+      const next = { ...prev, [day]: [...(prev[day] || [])] };
+      next[day][slotIndex] = subjectId;
+      Bun.write(FILES.SCHEDULE, JSON.stringify(next, null, 2));
+      return next;
+    });
+  };
+  const resetSchedule = () => {
+    return;
+  };
+
+  const markAttendance = (
+    date: string,
+    slotIndex: number,
+    status: AttendanceStatus,
+  ) => {
+    setAttendance((prev) => {
+      const next = { ...prev };
+
+      const updatedDayRecord = { ...(next[date] || {}) };
+      updatedDayRecord[slotIndex] = status;
+      next[date] = updatedDayRecord;
+
+      saveAttendanceToDisk(next);
+
+      return next;
+    });
+  };
+
+  const saveAttendanceToDisk = async (data: AttendanceRecord) => {
+    let csv = "";
+
+    Object.entries(data).forEach(([date, slots]) => {
+      const d = new Date(date);
+      const dayIndex = d.getDay() - 1;
+      const dayName = dayIndex >= 0 && dayIndex < 5 ? DAYS[dayIndex] : null;
+
+      Object.entries(slots).forEach(([slotStr, status]) => {
+        const slot = parseInt(slotStr);
+
+        let realSubjectId = "UNKNOWN";
+        if (dayName && schedule[dayName] && schedule[dayName][slot]) {
+          realSubjectId = schedule[dayName][slot];
+        }
+
+        csv += `${date},${slot},${realSubjectId},${status}\n`;
+      });
+    });
+
+    await Bun.write(FILES.MASTER, csv);
+  };
+
+  const getSubjectStats = (subjectId: string) => {
+    let total = 0;
+    let present = 0;
+
+    // Iterate all attendance records
+    // Note: This is O(N) where N is total days recorded.
+    // For a personal app, this is instant.
+    Object.entries(attendance).forEach(([date, slots]) => {
+      // Find which subject was scheduled on this day?
+      // We need to know the Day of Week for this date.
+      const d = new Date(date);
+      const dayName = DAYS[d.getDay() - 1]; // getDay: 0=Sun, 1=Mon...
+
+      if (!dayName || !schedule[dayName]) return; // Weekend or invalid
+
+      Object.entries(slots).forEach(([slotIdx, status]) => {
+        const scheduledSub = schedule[dayName][parseInt(slotIdx)];
+
+        // Only count if this specific subject was scheduled here
+        if (scheduledSub === subjectId) {
+          if (status === "P") {
+            present++;
+            total++;
+          } else if (status === "A") {
+            total++;
+          }
+          // 'T' (Teacher Absent) is ignored for both
+        }
+      });
+    });
+
+    const percentage = total === 0 ? 0 : (present / total) * 100;
+
+    // Buffer Calculation (Target 75%)
+    // Formula: (P + x) / (T + x) >= 0.75  => x is buffer classes to bunk? NO.
+    // Buffer = How many classes can I MISS?
+    // Formula: P / (T + x) >= 0.75  =>  P >= 0.75T + 0.75x  =>  0.75x <= P - 0.75T
+    const bufferRaw = present / 0.75 - total;
+    const buffer = Math.floor(bufferRaw); // If positive, can bunk this many.
+
+    // Lag Calculation (Need to attend)
+    // Formula: (P + x) / (T + x) >= 0.75
+    // x >= 3T - 4P
+    const lagRaw = 3 * total - 4 * present;
+    const lag = Math.max(0, Math.ceil(lagRaw));
+
+    return {
+      total,
+      present,
+      percentage,
+      buffer: buffer > 0 ? buffer : 0,
+      lag: buffer < 0 ? lag : 0,
+    };
+  };
+
+  return (
+    <AppContext.Provider
+      value={{
+        subjects,
+        schedule,
+        attendance,
+        addSubject,
+        removeSubject,
+        updateSchedule,
+        resetSchedule,
+        markAttendance,
+        getSubjectStats,
+      }}
+    >
+      {children}
+    </AppContext.Provider>
+  );
 }
 
 export function useApp() {
-    const context = useContext(AppContext);
-    if (!context) throw new Error("useApp must be used within AppProvider");
-    return context;
+  const context = useContext(AppContext);
+  if (!context) throw new Error("useApp must be used within AppProvider");
+  return context;
 }
