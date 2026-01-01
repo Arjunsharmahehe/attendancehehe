@@ -19,7 +19,7 @@ export function DashboardPage() {
 
   const jsDay = currentDate.getDay();
   const dayIndex = jsDay === 0 ? -1 : jsDay - 1;
-  const dayName = dayIndex >= 0 && dayIndex < 5 ? DAYS[dayIndex] : "Weekend";
+  const dayName = (dayIndex >= 0 && dayIndex < 5 ? DAYS[dayIndex] : "Weekend") as string;
 
   const todaysSlots = useMemo(() => {
     if (dayName === "Weekend") return [];
@@ -54,6 +54,11 @@ export function DashboardPage() {
       if (key.name === "t") markAttendance(dateStr, focusedSlot, "T");
     }
   });
+
+  // I can't with these type issues...
+  if (attendance[dateStr] === undefined) {
+    attendance[dateStr] = {};
+  }
 
   return (
     <box flexDirection="column" alignItems="center" padding={1} width={120}>

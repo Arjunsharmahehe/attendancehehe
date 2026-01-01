@@ -51,7 +51,7 @@ export function SubjectsPage() {
     }
 
     if (key.name === "d" && focusIndex >= 0) {
-      const idToDelete = subjects[focusIndex].id;
+      const idToDelete = subjects[focusIndex]?.id;
       removeSubject(idToDelete);
       setFocusIndex((prev) =>
         prev > 0 ? prev - 1 : subjects.length > 1 ? 0 : -1,

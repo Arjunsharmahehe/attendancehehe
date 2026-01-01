@@ -35,7 +35,7 @@ interface AppContextType {
   schedule: Schedule;
   attendance: AttendanceRecord;
   addSubject: (name: string, code: string) => void;
-  removeSubject: (id: string) => void;
+  removeSubject: (id: string | undefined) => void;
   updateSchedule: (day: string, slotIndex: number, subjectId: string) => void;
   resetSchedule: () => void;
   markAttendance: (
@@ -85,6 +85,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
           text.split("\n").forEach((line) => {
             if (!line.trim()) return;
             const [date, slotStr, , status] = line.split(","); // date,slot,subId,status
+            // Skip invalid (gotta get rid of red squiggles)
+            if (!date || !slotStr || !status) return;
             if (!records[date]) records[date] = {};
             records[date][parseInt(slotStr)] = status as AttendanceStatus;
           });
@@ -104,7 +106,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     );
   };
 
-  const removeSubject = (id: string) => {
+  const removeSubject = (id: string | undefined) => {
+    if (!id) return;
     setSubjects((prev) => prev.filter((s) => s.id !== id));
     Bun.write(
       FILES.SUBJECTS,
@@ -118,6 +121,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   ) => {
     setSchedule((prev) => {
       const next = { ...prev, [day]: [...(prev[day] || [])] };
+      if (!next[day]) next[day] = Array(8).fill("FREE");
       next[day][slotIndex] = subjectId;
       Bun.write(FILES.SCHEDULE, JSON.stringify(next, null, 2));
       return next;
@@ -187,6 +191,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (!dayName || !schedule[dayName]) return; // Weekend or invalid
 
       Object.entries(slots).forEach(([slotIdx, status]) => {
+        if (!schedule[dayName]) return;
         const scheduledSub = schedule[dayName][parseInt(slotIdx)];
 
         // Only count if this specific subject was scheduled here

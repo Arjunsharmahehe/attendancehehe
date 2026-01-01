@@ -1,13 +1,13 @@
 import { memo } from "react";
 import { TextAttributes } from "@opentui/core";
-import { type Subject } from "../context/app-context";
+import { type AttendanceStatus, type Subject } from "../context/app-context";
 import { DailyScheduleRow } from "./daily-schedule-row";
 
 interface DailyScheduleProps {
   dayName: string;
   slots: string[];
   subjects: Subject[];
-  attendanceRecord: Record<number, string>; // Just the record for THIS day
+  attendanceRecord: Record<number, AttendanceStatus>; // Just the record for THIS day
   focusedSlot: number;
 }
 
