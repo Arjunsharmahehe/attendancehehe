@@ -25,8 +25,8 @@ A personal attendance tracking terminal user interface built with [Bun](https://
 
 ```bash
 # Clone the repository
-git clone <your-repo-url>
-cd attendance-tracker
+git clone git@github.com:Arjunsharmahehe/attendancehehe.git
+cd attendancehehe
 
 # Install dependencies
 bun install
