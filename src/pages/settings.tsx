@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useKeyboard } from "@opentui/react";
 import { useApp, DAYS } from "../context/app-context";
 import { ScheduleRow } from "../components/schedule-row";
+import { SubjectDialog } from "../components/subject-dialog";
 import { TextAttributes } from "@opentui/core";
 
 export function SchedulePage() {
@@ -10,36 +11,56 @@ export function SchedulePage() {
   const [row, setRow] = useState(0);
   const [col, setCol] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(0);
 
   const options = useMemo(
-    () => ["FREE", ...subjects.map((s) => s.id)],
+    () => [
+      { code: "FREE", name: "Free Period", value: "FREE" },
+      ...subjects.map((s) => ({ code: s.code, name: s.name, value: s.id })),
+    ],
     [subjects],
   );
 
+  const currentValue = useMemo(() => {
+    const currentDay = DAYS[row] as string;
+    return (schedule[currentDay]?.[col] ?? "FREE") as string;
+  }, [schedule, row, col]);
+
   useKeyboard((key) => {
     if (isEditing) {
-      if (key.name === "s") {
+      if (key.name === "escape") {
         setIsEditing(false);
         return;
       }
 
-      const currentDay = DAYS[row];
-      const currentVal = schedule[currentDay][col];
-      const idx = options.indexOf(currentVal);
-      const safeIdx = idx === -1 ? 0 : idx;
+      if (key.name === "space") {
+        const currentDay = DAYS[row] as string;
+        const selectedOption = options[highlightedIndex];
+        if (currentDay && selectedOption) {
+          updateSchedule(currentDay, col, selectedOption.value);
+        }
+        setIsEditing(false);
+        return;
+      }
 
-      if (key.name === "d") {
-        const next = safeIdx < options.length - 1 ? safeIdx + 1 : 0;
-        updateSchedule(currentDay, col, options[next]);
+      if (key.name === "up") {
+        setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : options.length - 1));
+        return;
       }
-      if (key.name === "a") {
-        const prev = safeIdx > 0 ? safeIdx - 1 : options.length - 1;
-        updateSchedule(currentDay, col, options[prev]);
+
+      if (key.name === "down") {
+        setHighlightedIndex((prev) => (prev < options.length - 1 ? prev + 1 : 0));
+        return;
       }
-      return; // blocks other navigations while cycling
+
+      return;
     }
 
     if (key.name === "space") {
+      const currentDay = DAYS[row] as string;
+      const currentVal = schedule[currentDay]?.[col] ?? "FREE";
+      const idx = options.findIndex((opt) => opt.value === currentVal);
+      setHighlightedIndex(idx >= 0 ? idx : 0);
       setIsEditing(true);
       return;
     }
@@ -83,7 +104,6 @@ export function SchedulePage() {
             day={day}
             slots={schedule[day] as string[]}
             focusedColIndex={row === idx ? col : -1}
-            isEditing={isEditing}
             subjects={subjects}
           />
         ))}
@@ -97,9 +117,20 @@ export function SchedulePage() {
         justifyContent="center"
       >
         <text attributes={TextAttributes.DIM}>
-          [↑/↓/←/→] Navigate [Space] Edit [a/d] Cycle Options [s] Save
+          [↑/↓/←/→] Navigate [Space] Edit [W/S] Select [Ctrl+S] Save [X] Cancel
         </text>
       </box>
+
+      {/* Subject Selection Dialog - rendered on top */}
+      {isEditing && (
+        <box position="absolute" top={1} left={35}>
+          <SubjectDialog
+            options={options}
+            highlightedIndex={highlightedIndex}
+            currentValue={currentValue}
+          />
+        </box>
+      )}
     </box>
   );
 }

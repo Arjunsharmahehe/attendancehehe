@@ -6,8 +6,7 @@ import { TextAttributes } from "@opentui/core";
 interface ScheduleRowProps {
   day: string;
   slots: string[];
-  focusedColIndex: number; // -1 if row not focused
-  isEditing: boolean;
+  focusedColIndex: number;
   subjects: Subject[];
 }
 
@@ -15,7 +14,6 @@ export const ScheduleRow = memo(function ScheduleRow({
   day,
   slots,
   focusedColIndex,
-  isEditing,
   subjects,
 }: ScheduleRowProps) {
   return (
@@ -36,7 +34,6 @@ export const ScheduleRow = memo(function ScheduleRow({
           key={`${day}-${idx}`}
           value={val}
           isFocused={focusedColIndex === idx}
-          isEditing={focusedColIndex === idx && isEditing} // Only the focused cell gets edit mode
           subjects={subjects}
         />
       ))}
