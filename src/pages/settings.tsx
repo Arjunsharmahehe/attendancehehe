@@ -110,15 +110,13 @@ export function SchedulePage() {
       </box>
 
       {/* Footer */}
-      <box
-        marginTop={2}
-        flexGrow={1}
-        alignItems="center"
-        justifyContent="center"
-      >
-        <text attributes={TextAttributes.DIM}>
-          [↑/↓/←/→] Navigate [Space] Edit [W/S] Select [Ctrl+S] Save [X] Cancel
-        </text>
+      <box marginTop={2} justifyContent="center" flexDirection="row" gap={1}>
+        <text>↑/↓/←/→</text>
+        <text attributes={TextAttributes.DIM}>Navigate</text>
+        <text>space</text>
+        <text attributes={TextAttributes.DIM}>Edit</text>
+        <text>ctrl+r</text>
+        <text attributes={TextAttributes.DIM}>Reset</text>
       </box>
 
       {/* Subject Selection Dialog - rendered on top */}

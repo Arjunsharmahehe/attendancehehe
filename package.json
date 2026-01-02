@@ -1,6 +1,6 @@
 {
     "name": "attendancehehe",
-    "version": "0.1.0",
+    "version": "0.4.0",
     "description": "Your personal attendance tracking TUI",
     "main": "./dist/index.tsx",
     "bin": {

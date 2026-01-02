@@ -107,15 +107,15 @@ export function SubjectsPage() {
       />
 
       {/* Controls Helper */}
-      <box
-        marginTop={2}
-        flexGrow={1}
-        alignItems="center"
-        justifyContent="center"
-      >
-        <text attributes={TextAttributes.DIM}>
-          [↑/↓] Row [←/→] Col [Space] Edit [Enter] Save [d] Delete
-        </text>
+      <box marginTop={2} justifyContent="center" flexDirection="row" gap={1}>
+        <text>↑/↓</text>
+        <text attributes={TextAttributes.DIM}>Row</text>
+        <text>←/→</text>
+        <text attributes={TextAttributes.DIM}>Col</text>
+        <text>space</text>
+        <text attributes={TextAttributes.DIM}>Edit</text>
+        <text>d</text>
+        <text attributes={TextAttributes.DIM}>Delete</text>
       </box>
     </box>
   );

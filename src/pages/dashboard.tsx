@@ -103,10 +103,17 @@ export function DashboardPage() {
         </box>
       </box>
 
-      <box marginTop={2}>
-        <text attributes={TextAttributes.DIM}>
-          [←/→] Date [↑/↓] Select [P]resent [A]bsent [T]eacher
-        </text>
+      <box marginTop={2} justifyContent="center" flexDirection="row" gap={1}>
+        <text>↑/↓</text>
+        <text attributes={TextAttributes.DIM}>Select</text>
+        <text>←/→</text>
+        <text attributes={TextAttributes.DIM}>Date</text>
+        <text>P</text>
+        <text attributes={TextAttributes.DIM}>Present</text>
+        <text>A</text>
+        <text attributes={TextAttributes.DIM}>Absent</text>
+        <text>T</text>
+        <text attributes={TextAttributes.DIM}>Teacher</text>
       </box>
     </box>
   );
