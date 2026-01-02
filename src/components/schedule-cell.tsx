@@ -4,12 +4,14 @@ import { TextAttributes } from "@opentui/core";
 
 interface ScheduleCellProps {
   value: string;
+  color?: string;
   isFocused: boolean;
   subjects: Subject[];
 }
 
 export const ScheduleCell = memo(function ScheduleCell({
   value,
+  color,
   isFocused,
   subjects,
 }: ScheduleCellProps) {
@@ -27,7 +29,7 @@ export const ScheduleCell = memo(function ScheduleCell({
     );
   }
   
-  const fgColor = value === "FREE" ? "gray" : "cyan";
+  const fgColor = value === "FREE" ? "gray" : (color ?? "cyan");
   return (
     <box width={12} height={2} alignItems="center" justifyContent="center">
       <text fg={fgColor}>

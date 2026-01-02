@@ -29,14 +29,18 @@ export const ScheduleRow = memo(function ScheduleRow({
       </box>
 
       {/* Slots */}
-      {slots.map((val, idx) => (
-        <ScheduleCell
-          key={`${day}-${idx}`}
-          value={val}
-          isFocused={focusedColIndex === idx}
-          subjects={subjects}
-        />
-      ))}
+      {slots.map((val, idx) => {
+        const subjectColor = val === "FREE" ? undefined : subjects.find(s => s.id === val)?.color;
+        return (
+          <ScheduleCell
+            key={`${day}-${idx}`}
+            value={val}
+            isFocused={focusedColIndex === idx}
+            subjects={subjects}
+            color={subjectColor}
+          />
+        );
+      })}
     </box>
   );
 });
