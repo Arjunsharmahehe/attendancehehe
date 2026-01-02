@@ -9,7 +9,15 @@ import os from "os";
 import path from "path";
 import fs from "fs";
 
-export type Subject = { id: string; name: string; code: string };
+export type Subject = {
+  id: string;
+  name: string;
+  code: string;
+  color: string;
+  credits: string;
+  room: string;
+  instructor: string;
+};
 export type Schedule = Record<string, string[]>;
 export const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 
@@ -36,6 +44,10 @@ interface AppContextType {
   attendance: AttendanceRecord;
   addSubject: (name: string, code: string) => void;
   removeSubject: (id: string | undefined) => void;
+  updateSubject: (
+    id: string,
+    updates: Partial<Pick<Subject, "color" | "credits" | "room" | "instructor">>,
+  ) => void;
   updateSchedule: (day: string, slotIndex: number, subjectId: string) => void;
   resetSchedule: () => void;
   markAttendance: (
@@ -67,7 +79,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     async function load() {
       const subFile = Bun.file(FILES.SUBJECTS);
-      if (await subFile.exists()) setSubjects(await subFile.json());
+      if (await subFile.exists()) {
+        const loadedSubjects: Subject[] = await subFile.json();
+        // Migrate subjects to include new fields with defaults
+        const migratedSubjects = loadedSubjects.map((s) => ({
+          ...s,
+          color: s.color ?? "cyan",
+          credits: s.credits ?? "",
+          room: s.room ?? "",
+          instructor: s.instructor ?? "",
+        }));
+        setSubjects(migratedSubjects);
+      }
 
       const schedFile = Bun.file(FILES.SCHEDULE);
       if (await schedFile.exists()) {
@@ -98,7 +121,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const addSubject = (name: string, code: string) => {
-    const newSubject: Subject = { id: crypto.randomUUID(), name, code };
+    const newSubject: Subject = {
+      id: crypto.randomUUID(),
+      name,
+      code,
+      color: "cyan",
+      credits: "",
+      room: "",
+      instructor: "",
+    };
     setSubjects((prev) => [...prev, newSubject]);
     Bun.write(
       FILES.SUBJECTS,
@@ -113,6 +144,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
       FILES.SUBJECTS,
       JSON.stringify([...subjects.filter((s) => s.id !== id)], null, 2),
     );
+  };
+
+  const updateSubject = (
+    id: string,
+    updates: Partial<Pick<Subject, "color" | "credits" | "room" | "instructor">>,
+  ) => {
+    setSubjects((prev) => {
+      const next = prev.map((s) =>
+        s.id === id ? { ...s, ...updates } : s,
+      );
+      Bun.write(FILES.SUBJECTS, JSON.stringify(next, null, 2));
+      return next;
+    });
   };
   const updateSchedule = (
     day: string,
@@ -239,6 +283,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         attendance,
         addSubject,
         removeSubject,
+        updateSubject,
         updateSchedule,
         resetSchedule,
         markAttendance,
