@@ -45,12 +45,16 @@ export function CustomizePage() {
       }
 
       if (key.name === "w" || key.name === "W" || key.name === "up") {
-        setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : COLORS.length - 1));
+        setHighlightedIndex((prev) =>
+          prev > 0 ? prev - 1 : COLORS.length - 1,
+        );
         return;
       }
 
       if (key.name === "s" || key.name === "S" || key.name === "down") {
-        setHighlightedIndex((prev) => (prev < COLORS.length - 1 ? prev + 1 : 0));
+        setHighlightedIndex((prev) =>
+          prev < COLORS.length - 1 ? prev + 1 : 0,
+        );
         return;
       }
 
@@ -112,10 +116,13 @@ export function CustomizePage() {
     }
   });
 
-  const handleSaveField = useCallback((id: string, field: Field, value: string) => {
-    updateSubject(id, { [field]: value });
-    setIsEditing(false);
-  }, [updateSubject]);
+  const handleSaveField = useCallback(
+    (id: string, field: Field, value: string) => {
+      updateSubject(id, { [field]: value });
+      setIsEditing(false);
+    },
+    [updateSubject],
+  );
 
   return (
     <box flexDirection="column" alignItems="center" padding={1} width={100}>
@@ -125,11 +132,21 @@ export function CustomizePage() {
 
       <box flexDirection="column" marginTop={1}>
         <box flexDirection="row" alignItems="center" marginBottom={1}>
-          <text attributes={TextAttributes.DIM} width={25}>Name</text>
-          <text attributes={TextAttributes.DIM} width={10}>Color</text>
-          <text attributes={TextAttributes.DIM} width={8}>Credits</text>
-          <text attributes={TextAttributes.DIM} width={12}>Room</text>
-          <text attributes={TextAttributes.DIM} width={20}>Instructor</text>
+          <text attributes={TextAttributes.DIM} width={25}>
+            Name
+          </text>
+          <text attributes={TextAttributes.DIM} width={10}>
+            Color
+          </text>
+          <text attributes={TextAttributes.DIM} width={8}>
+            Credits
+          </text>
+          <text attributes={TextAttributes.DIM} width={12}>
+            Room
+          </text>
+          <text attributes={TextAttributes.DIM} width={20}>
+            Instructor
+          </text>
         </box>
 
         {subjects.map((subj, idx) => (
@@ -158,7 +175,7 @@ export function CustomizePage() {
       </box>
 
       {isColorDialogOpen && currentSubject && (
-        <box position="absolute" top={8} left={30}>
+        <box position="absolute" top={1} left={35}>
           <ColorDialog
             options={COLORS}
             highlightedIndex={highlightedIndex}
@@ -166,6 +183,6 @@ export function CustomizePage() {
           />
         </box>
       )}
-        </box>
+    </box>
   );
 }

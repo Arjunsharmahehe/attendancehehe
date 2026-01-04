@@ -20,6 +20,7 @@ A personal attendance tracking terminal user interface built with [Bun](https://
 - **Smart Buffer Calculation** - See how many classes you can safely miss while maintaining 75% attendance
 - **Persistent Storage** - All data saved automatically to `~/.attendancehehe/`
 - **Keyboard-First Navigation** - Fully keyboard accessible with intuitive shortcuts
+- **Subject Customization** - Assign colors, credits, rooms, and instructors to subjects for color-coded timetable display
 
 ## Prerequisites
 
@@ -58,14 +59,18 @@ attendance-tracker/
 │   ├── context/
 │   │   └── app-context.tsx    # Global state & data management
 │   ├── components/
+│   │   ├── color-dialog.tsx       # Color selection dialog
+│   │   ├── customize-row.tsx      # Customize page row component
 │   │   ├── daily-schedule.tsx     # Daily schedule display
 │   │   ├── daily-schedule-row.tsx # Individual slot row
 │   │   ├── overall-stats.tsx      # Statistics panel
 │   │   ├── schedule-cell.tsx      # Timetable cell
 │   │   ├── schedule-row.tsx       # Timetable day row
+│   │   ├── subject-dialog.tsx     # Subject selection dialog
 │   │   ├── subject-row.tsx        # Subject list item
 │   │   └── new-subject-row.tsx    # New subject input
 │   └── pages/
+│       ├── customize.tsx      # Subject customization page
 │       ├── dashboard.tsx      # Main dashboard (attendance logging)
 │       ├── subjects.tsx       # Subject management page
 │       └── settings.tsx       # Timetable configuration page
@@ -80,7 +85,7 @@ attendance-tracker/
 
 | Key | Action |
 |-----|--------|
-| `Tab` | Switch between views (Dashboard → Subjects → Settings → Dashboard) |
+| `Tab` | Switch between views (Dashboard → Subjects → Timetable → Customize → Dashboard) |
 | `q` | Quit application |
 
 ### Dashboard View
@@ -89,8 +94,8 @@ The main dashboard shows today's schedule and allows you to log attendance.
 
 | Key | Action |
 |-----|--------|
-| `←` / `→` | Navigate to previous/next day |
 | `↑` / `↓` | Select class slot |
+| `←` / `→` | Navigate to previous/next day |
 | `p` | Mark as Present |
 | `a` | Mark as Absent |
 | `t` | Mark as Teacher Absent |
@@ -108,7 +113,7 @@ Manage your subjects list.
 | `d` | Delete selected subject |
 | `Esc` | Cancel editing |
 
-### Settings View (Timetable)
+### Timetable View (Settings)
 
 Configure your weekly class schedule (8 slots per day).
 
@@ -116,16 +121,40 @@ Configure your weekly class schedule (8 slots per day).
 |-----|--------|
 | `↑` / `↓` | Navigate days |
 | `←` / `→` | Navigate slots |
-| `Space` | Start editing cell |
-| `a` / `d` | Cycle through available subjects |
-| `s` | Save and exit edit mode |
+| `Space` | Start editing cell (opens subject dialog) |
+| `↑` / `↓` (in dialog) | Navigate through subjects |
+| `Space` (in dialog) | Select subject |
+| `Esc` (in dialog) | Cancel |
 | `Ctrl+r` | Reset entire schedule |
+
+### Customize View
+
+Customize subject details including color coding, credits, room number, and instructor name. Color-coded subjects will be displayed with their assigned colors in the timetable.
+
+| Key | Action |
+|-----|--------|
+| `↑` / `↓` | Navigate through subjects |
+| `←` / `→` | Navigate columns (Name, Color, Credits, Room, Instructor) |
+| `Space` (on Color) | Open color selection dialog |
+| `Space` (on other fields) | Start editing |
+| `Enter` | Save changes |
+| `Esc` | Cancel editing |
+| `Backspace` | Delete characters while editing |
+| `Shift+key` | Type uppercase letters |
+
+#### Color Selection Dialog
+
+| Key | Action |
+|-----|--------|
+| `W` / `S` or `↑` / `↓` | Navigate colors |
+| `Space` or `Enter` | Select color |
+| `X` or `Esc` | Cancel |
 
 ## Data Storage
 
 All data is stored in `~/.attendancehehe/` directory:
 
-- `subjects.json` - List of subjects
+- `subjects.json` - List of subjects (including color, credits, room, instructor)
 - `schedule.json` - Weekly timetable configuration
 - `master.csv` - Attendance records (date,slot,subjectId,status)
 

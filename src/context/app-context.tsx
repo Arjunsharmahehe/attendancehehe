@@ -21,6 +21,42 @@ export type Subject = {
 export type Schedule = Record<string, string[]>;
 export const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 
+// Timetable Preset Types
+export type TimetablePreset = {
+  name: string;
+  slots: (string | null)[]; // null means no class for that slot
+};
+
+const DEFAULT_PRESETS: TimetablePreset[] = [
+  {
+    name: "Standard (9-1, 1:30-5:30)",
+    slots: [
+      "9:00am-10:00am",
+      "10:00am-11:00am",
+      "11:00am-12:00pm",
+      "12:00pm-1:00pm",
+      "1:30pm-2:30pm",
+      "2:30pm-3:30pm",
+      "3:30pm-4:30pm",
+      "4:30pm-5:30pm",
+    ],
+  },
+  {
+    name: "Schools-1 (8-11, 11:15-2:15)",
+    slots: [
+      "",
+      "8:00am-8:45am",
+      "8:45am-9:30am",
+      "9:30am-10:15am",
+      "10:15am-11:00am",
+      "11:15am-12:00pm",
+      "12:00pm-12:45pm",
+      "12:45pm-1:30pm",
+      "1:30pm-2:15pm",
+    ],
+  },
+];
+
 // Attendance Types
 export type AttendanceStatus = "P" | "A" | "T"; // Present, Absent, Teacher Absent
 export type AttendanceRecord = Record<string, Record<number, AttendanceStatus>>; // "YYYY-MM-DD" -> { 0: "P", 1: "A" }
@@ -36,17 +72,21 @@ const FILES = {
   SUBJECTS: path.join(dataDir, "subjects.json"),
   SCHEDULE: path.join(dataDir, "schedule.json"),
   MASTER: path.join(dataDir, "master.csv"),
+  TIMETABLE_PRESETS: path.join(dataDir, "timetable-presets.json"),
 };
 
 interface AppContextType {
   subjects: Subject[];
   schedule: Schedule;
   attendance: AttendanceRecord;
+  timetablePresets: TimetablePreset[];
   addSubject: (name: string, code: string) => void;
   removeSubject: (id: string | undefined) => void;
   updateSubject: (
     id: string,
-    updates: Partial<Pick<Subject, "color" | "credits" | "room" | "instructor">>,
+    updates: Partial<
+      Pick<Subject, "color" | "credits" | "room" | "instructor">
+    >,
   ) => void;
   updateSchedule: (day: string, slotIndex: number, subjectId: string) => void;
   resetSchedule: () => void;
@@ -62,6 +102,7 @@ interface AppContextType {
     buffer: number;
     lag: number;
   };
+  addTimetablePreset: (preset: TimetablePreset) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -74,6 +115,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return init;
   });
   const [attendance, setAttendance] = useState<AttendanceRecord>({});
+  const [timetablePresets, setTimetablePresets] =
+    useState<TimetablePreset[]>(DEFAULT_PRESETS);
 
   // --- Load Data ---
   useEffect(() => {
@@ -116,6 +159,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
           setAttendance(records);
         }
       }
+
+      // Load timetable presets
+      const presetsFile = Bun.file(FILES.TIMETABLE_PRESETS);
+      if (await presetsFile.exists()) {
+        const loadedPresets: TimetablePreset[] = await presetsFile.json();
+        if (Array.isArray(loadedPresets) && loadedPresets.length > 0) {
+          setTimetablePresets(loadedPresets);
+        }
+      }
     }
     load();
   }, []);
@@ -148,12 +200,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const updateSubject = (
     id: string,
-    updates: Partial<Pick<Subject, "color" | "credits" | "room" | "instructor">>,
+    updates: Partial<
+      Pick<Subject, "color" | "credits" | "room" | "instructor">
+    >,
   ) => {
     setSubjects((prev) => {
-      const next = prev.map((s) =>
-        s.id === id ? { ...s, ...updates } : s,
-      );
+      const next = prev.map((s) => (s.id === id ? { ...s, ...updates } : s));
       Bun.write(FILES.SUBJECTS, JSON.stringify(next, null, 2));
       return next;
     });
@@ -275,12 +327,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
   };
 
+  const addTimetablePreset = (preset: TimetablePreset) => {
+    const next = [...timetablePresets, preset];
+    setTimetablePresets(next);
+    Bun.write(FILES.TIMETABLE_PRESETS, JSON.stringify(next, null, 2));
+  };
+
   return (
     <AppContext.Provider
       value={{
         subjects,
         schedule,
         attendance,
+        timetablePresets,
         addSubject,
         removeSubject,
         updateSubject,
@@ -288,6 +347,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         resetSchedule,
         markAttendance,
         getSubjectStats,
+        addTimetablePreset,
       }}
     >
       {children}

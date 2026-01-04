@@ -36,28 +36,30 @@ export const ColorDialog = memo(function ColorDialog({
         {options.map((option, idx) => {
           const isSelected = option.value === currentValue;
           const isHighlighted = idx === highlightedIndex;
-          
+
           const marker = isHighlighted ? "> " : "  ";
           const selectMark = isSelected ? "● " : "  ";
-          
+
           return (
             <box key={option.value} paddingLeft={1} paddingRight={1}>
               <text
                 fg={isHighlighted ? "blue" : "white"}
                 attributes={isHighlighted ? TextAttributes.BOLD : undefined}
               >
-                {marker}{selectMark}{option.name}
+                {marker}
+                {selectMark}
+                {option.name}
               </text>
             </box>
           );
         })}
       </box>
-      <box marginTop={1} justifyContent="center" flexDirection="row" gap={1}>
-        <text>W/S</text>
+      <box marginTop={2} justifyContent="center" flexDirection="row" gap={1}>
+        <text>↑/↓</text>
         <text attributes={TextAttributes.DIM}>Navigate</text>
-        <text>Enter</text>
+        <text>enter</text>
         <text attributes={TextAttributes.DIM}>Select</text>
-        <text>X</text>
+        <text>esc</text>
         <text attributes={TextAttributes.DIM}>Cancel</text>
       </box>
     </box>

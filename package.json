@@ -1,37 +1,38 @@
 {
-    "name": "attendancehehe",
-    "version": "0.4.0",
-    "description": "Your personal attendance tracking TUI",
-    "main": "./dist/index.tsx",
-    "bin": {
-        "attendancehehe": "./dist/index.tsx"
-    },
-    "files": [
-        "dist"
-    ],
-    "keywords": [
-        "tui",
-        "attendance",
-        "terminal"
-    ],
-    "author": "Arjun Sharma",
-    "license": "MIT",
-    "module": "src/index.tsx",
-    "type": "module",
-    "private": true,
-    "scripts": {
-        "dev": "bun run --watch src/index.tsx",
-        "build": "tsup src/index.tsx --format esm --platform node"
-    },
-    "devDependencies": {
-        "@types/bun": "latest"
-    },
-    "peerDependencies": {
-        "typescript": "^5"
-    },
-    "dependencies": {
-        "@opentui/core": "^0.1.66",
-        "@opentui/react": "^0.1.66",
-        "react": "^19.2.3"
-    }
+  "name": "attendancehehe",
+  "version": "0.4.0",
+  "description": "Your personal attendance tracking TUI",
+  "main": "./dist/index.tsx",
+  "bin": {
+    "attendancehehe": "./dist/index.tsx"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "tui",
+    "attendance",
+    "terminal"
+  ],
+  "author": "Arjun Sharma",
+  "license": "MIT",
+  "module": "src/index.tsx",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun run --watch src/index.tsx",
+    "build": "tsup src/index.tsx --format esm --platform node"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@opentui/core": "^0.1.66",
+    "@opentui/react": "^0.1.66",
+    "canvas": "^3.2.0",
+    "react": "^19.2.3"
+  }
 }
