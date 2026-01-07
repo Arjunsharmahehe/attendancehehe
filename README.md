@@ -4,12 +4,17 @@ A personal attendance tracking terminal user interface built with [Bun](https://
 
 ## Screenshots
 
-### Dashboard View
-![Dashboard View](public/dashboard.png)
-
-| Subjects Management | Settings (Timetable Configuration) |
+| Dashboard | Subjects |
 |---|---|
-| ![Subjects View](public/subjects.png) | ![Settings View](public/settings.png) |
+| ![Dashboard View](public/dashboard.png) | ![Subjects View](public/subjects.png) |
+| **Timetable** | **Customize** |
+| ![Settings View](public/settings.png) | ![Customize View](public/customize.png) |
+
+### Timetable Image Export
+
+Generate a professional PNG image of your weekly timetable to share or print.
+
+![Timetable Image](public/timetable.png)
 
 ## Features
 
@@ -21,11 +26,13 @@ A personal attendance tracking terminal user interface built with [Bun](https://
 - **Persistent Storage** - All data saved automatically to `~/.attendancehehe/`
 - **Keyboard-First Navigation** - Fully keyboard accessible with intuitive shortcuts
 - **Subject Customization** - Assign colors, credits, rooms, and instructors to subjects for color-coded timetable display
+- **Image Export** - Generate beautiful PNG images of your weekly timetable to share or print
 
 ## Prerequisites
 
 - [Bun](https://bun.sh) runtime (version 1.0 or later)
 - Terminal with true color support (most modern terminals)
+- For image export: [node-canvas](https://github.com/Automattic/node-canvas) dependencies
 
 ## Installation
 
@@ -68,12 +75,15 @@ attendance-tracker/
 │   │   ├── schedule-row.tsx       # Timetable day row
 │   │   ├── subject-dialog.tsx     # Subject selection dialog
 │   │   ├── subject-row.tsx        # Subject list item
-│   │   └── new-subject-row.tsx    # New subject input
-│   └── pages/
-│       ├── customize.tsx      # Subject customization page
-│       ├── dashboard.tsx      # Main dashboard (attendance logging)
-│       ├── subjects.tsx       # Subject management page
-│       └── settings.tsx       # Timetable configuration page
+│   │   ├── new-subject-row.tsx    # New subject input
+│   │   └── timetable-modal.tsx    # Timetable preset selection modal
+│   ├── pages/
+│   │   ├── customize.tsx      # Subject customization page
+│   │   ├── dashboard.tsx      # Main dashboard (attendance logging)
+│   │   ├── subjects.tsx       # Subject management page
+│   │   └── settings.tsx       # Timetable configuration page
+│   └── utils/
+│       └── timetable-renderer.ts  # PNG image generation
 ├── package.json
 ├── tsconfig.json
 └── README.md
@@ -86,6 +96,7 @@ attendance-tracker/
 | Key | Action |
 |-----|--------|
 | `Tab` | Switch between views (Dashboard → Subjects → Timetable → Customize → Dashboard) |
+| `Ctrl+g` | Generate timetable image |
 | `q` | Quit application |
 
 ### Dashboard View
@@ -150,6 +161,21 @@ Customize subject details including color coding, credits, room number, and inst
 | `Space` or `Enter` | Select color |
 | `X` or `Esc` | Cancel |
 
+### Timetable Image Export
+
+Generate a professional PNG image of your weekly timetable to share or print.
+
+![Timetable Image](public/timetable.png)
+
+| Key | Action |
+|-----|--------|
+| `Ctrl+g` | Open preset selection modal |
+| `↑` / `↓` | Navigate through presets |
+| `Space` or `Enter` | Generate image |
+| `Esc` | Cancel |
+
+The generated image is saved to your home directory as `timetable-YYYY-MM-DD.png`.
+
 ## Data Storage
 
 All data is stored in `~/.attendancehehe/` directory:
@@ -157,6 +183,16 @@ All data is stored in `~/.attendancehehe/` directory:
 - `subjects.json` - List of subjects (including color, credits, room, instructor)
 - `schedule.json` - Weekly timetable configuration
 - `master.csv` - Attendance records (date,slot,subjectId,status)
+- `timetable-presets.json` - Custom timetable time slot presets
+
+## Timetable Presets
+
+The application includes built-in time slot presets for common schedules:
+
+- **Standard (9-1, 1:30-5:30)** - 9:00am-10:00am, 10:00am-11:00am, 11:00am-12:00pm, 12:00pm-1:00pm, 1:30pm-2:30pm, 2:30pm-3:30pm, 3:30pm-4:30pm, 4:30pm-5:30pm
+- **Schools-1 (8-11, 11:15-2:15)** - Aligned to school morning schedules
+
+When generating a timetable image, select the preset that matches your class timing.
 
 ## Statistics Explained
 
@@ -175,6 +211,7 @@ These calculations help you understand:
 - **TUI Framework**: [OpenTUI](https://github.com/sst/opentui) - React renderer for terminal UIs
 - **UI Library**: React 19
 - **Language**: TypeScript
+- **Image Generation**: [node-canvas](https://github.com/Automattic/node-canvas) - Canvas implementation for Node.js
 
 ## License
 
