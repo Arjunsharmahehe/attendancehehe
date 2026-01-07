@@ -40,6 +40,7 @@ export function MainApp() {
 
   useKeyboard((key) => {
     if (key.name == "tab") {
+      showTimetableModal && setShowTimetableModal(false);
       setActiveView((prev) => {
         if (prev == "dashboard") return "subjects";
         if (prev == "subjects") return "timetable";

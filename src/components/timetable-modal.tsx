@@ -44,8 +44,7 @@ export const TimetableModal = memo(function TimetableModal({
   return (
     <box
       position="absolute"
-      top={8}
-      left={35}
+      top={10}
       width={40}
       flexDirection="column"
       paddingTop={0.5}

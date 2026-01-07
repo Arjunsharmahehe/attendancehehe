@@ -6,7 +6,7 @@ import { SubjectRow } from "../components/subject-row";
 import { NewSubjectRow } from "../components/new-subject-row";
 
 export function SubjectsPage() {
-  const { subjects, addSubject, removeSubject } = useApp();
+  const { subjects, addSubject, removeSubject, updateSubjectNameCode } = useApp();
 
   const [focusIndex, setFocusIndex] = useState<number>(-1);
   const [subFocus, setSubFocus] = useState<0 | 1>(0);
@@ -61,11 +61,10 @@ export function SubjectsPage() {
 
   const handleSaveRow = useCallback(
     (id: string, name: string, code: string) => {
-      removeSubject(id);
-      addSubject(name, code);
+      updateSubjectNameCode(id, name, code);
       setIsEditing(false);
     },
-    [removeSubject, addSubject],
+    [updateSubjectNameCode],
   );
 
   const handleAddRow = useCallback(

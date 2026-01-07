@@ -8,6 +8,7 @@ import {
 import os from "os";
 import path from "path";
 import fs from "fs";
+import Bun from "bun";
 
 export type Subject = {
   id: string;
@@ -75,6 +76,22 @@ const FILES = {
   TIMETABLE_PRESETS: path.join(dataDir, "timetable-presets.json"),
 };
 
+function atomicWriteSync(filePath: string, content: string): void {
+  const tempPath = `${filePath}.tmp`;
+  fs.writeFileSync(tempPath, content, "utf-8");
+  fs.renameSync(tempPath, filePath);
+}
+
+async function atomicWrite(filePath: string, content: string): Promise<void> {
+  const tempPath = `${filePath}.tmp`;
+  await Bun.write(tempPath, content);
+  await Bun.write(filePath, await Bun.file(tempPath).text());
+  try {
+    await Bun.write(tempPath, "");
+  } catch {
+  }
+}
+
 interface AppContextType {
   subjects: Subject[];
   schedule: Schedule;
@@ -82,6 +99,7 @@ interface AppContextType {
   timetablePresets: TimetablePreset[];
   addSubject: (name: string, code: string) => void;
   removeSubject: (id: string | undefined) => void;
+  updateSubjectNameCode: (id: string, name: string, code: string) => void;
   updateSubject: (
     id: string,
     updates: Partial<
@@ -183,7 +201,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       instructor: "",
     };
     setSubjects((prev) => [...prev, newSubject]);
-    Bun.write(
+    atomicWriteSync(
       FILES.SUBJECTS,
       JSON.stringify([...subjects, newSubject], null, 2),
     );
@@ -192,7 +210,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const removeSubject = (id: string | undefined) => {
     if (!id) return;
     setSubjects((prev) => prev.filter((s) => s.id !== id));
-    Bun.write(
+    atomicWriteSync(
       FILES.SUBJECTS,
       JSON.stringify([...subjects.filter((s) => s.id !== id)], null, 2),
     );
@@ -206,10 +224,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
   ) => {
     setSubjects((prev) => {
       const next = prev.map((s) => (s.id === id ? { ...s, ...updates } : s));
-      Bun.write(FILES.SUBJECTS, JSON.stringify(next, null, 2));
+      atomicWriteSync(FILES.SUBJECTS, JSON.stringify(next, null, 2));
       return next;
     });
   };
+
+  const updateSubjectNameCode = (id: string, name: string, code: string) => {
+    setSubjects((prev) => {
+      const next = prev.map((s) => (s.id === id ? { ...s, name, code } : s));
+      atomicWriteSync(FILES.SUBJECTS, JSON.stringify(next, null, 2));
+      return next;
+    });
+  };
+
   const updateSchedule = (
     day: string,
     slotIndex: number,
@@ -219,7 +246,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const next = { ...prev, [day]: [...(prev[day] || [])] };
       if (!next[day]) next[day] = Array(8).fill("FREE");
       next[day][slotIndex] = subjectId;
-      Bun.write(FILES.SCHEDULE, JSON.stringify(next, null, 2));
+      atomicWriteSync(FILES.SCHEDULE, JSON.stringify(next, null, 2));
       return next;
     });
   };
@@ -227,7 +254,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const init: Schedule = {};
     DAYS.forEach((d) => (init[d] = Array(8).fill("FREE")));
     setSchedule(init);
-    Bun.write(FILES.SCHEDULE, JSON.stringify(init, null, 2));
+    atomicWriteSync(FILES.SCHEDULE, JSON.stringify(init, null, 2));
   };
 
   const markAttendance = (
@@ -268,7 +295,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       });
     });
 
-    await Bun.write(FILES.MASTER, csv);
+    await atomicWrite(FILES.MASTER, csv);
   };
 
   const getSubjectStats = (subjectId: string) => {
@@ -330,7 +357,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const addTimetablePreset = (preset: TimetablePreset) => {
     const next = [...timetablePresets, preset];
     setTimetablePresets(next);
-    Bun.write(FILES.TIMETABLE_PRESETS, JSON.stringify(next, null, 2));
+    atomicWriteSync(FILES.TIMETABLE_PRESETS, JSON.stringify(next, null, 2));
   };
 
   return (
@@ -343,6 +370,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         addSubject,
         removeSubject,
         updateSubject,
+        updateSubjectNameCode,
         updateSchedule,
         resetSchedule,
         markAttendance,

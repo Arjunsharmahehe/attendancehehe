@@ -55,11 +55,6 @@ export function DashboardPage() {
     }
   });
 
-  // I can't with these type issues...
-  if (attendance[dateStr] === undefined) {
-    attendance[dateStr] = {};
-  }
-
   return (
     <box flexDirection="column" alignItems="center" padding={1} width={120}>
       {/* Header */}

@@ -7,7 +7,7 @@ interface DailyScheduleProps {
   dayName: string;
   slots: string[];
   subjects: Subject[];
-  attendanceRecord: Record<number, AttendanceStatus>; // Just the record for THIS day
+  attendanceRecord?: Record<number, AttendanceStatus>;
   focusedSlot: number;
 }
 
