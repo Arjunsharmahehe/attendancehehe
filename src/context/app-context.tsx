@@ -62,7 +62,7 @@ const DEFAULT_PRESETS: TimetablePreset[] = [
 export type AttendanceStatus = "P" | "A" | "T"; // Present, Absent, Teacher Absent
 export type AttendanceRecord = Record<string, Record<number, AttendanceStatus>>; // "YYYY-MM-DD" -> { 0: "P", 1: "A" }
 
-const dataDir = path.join(os.homedir(), ".attendancehehe");
+const dataDir = path.join(os.homedir(), ".config", "attendthat");
 
 // Ensure directory exists
 if (!fs.existsSync(dataDir)) {
@@ -88,8 +88,7 @@ async function atomicWrite(filePath: string, content: string): Promise<void> {
   await Bun.write(filePath, await Bun.file(tempPath).text());
   try {
     await Bun.write(tempPath, "");
-  } catch {
-  }
+  } catch {}
 }
 
 interface AppContextType {

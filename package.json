@@ -14,7 +14,7 @@
   "private": true,
   "scripts": {
     "dev": "bun run --watch src/index.tsx",
-    "build": "bun build ./src/index.tsx --compile"
+    "build": "bun build ./src/index.tsx --compile --outfile dist/attendthat"
   },
   "devDependencies": {
     "@types/bun": "latest"
